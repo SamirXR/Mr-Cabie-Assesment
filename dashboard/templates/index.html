@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cabie AI — Driver Pickup Reminder System</title>
+    <link rel="stylesheet" href="/static/style.css?v=30">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Top Navigation -->
+        <header class="navbar">
+            <div class="brand">
+                <img src="/static/logo.jpeg" alt="Cabie Logo" class="brand-logo-img">
+                <div class="brand-text">
+                    <span class="title">CABIE FLEET ENGINE</span>
+                    <span class="subtitle">Driver Pickup Reminder Agent v1.0</span>
+                </div>
+            </div>
+            <div class="navbar-right">
+                <div class="system-badges">
+                    <span class="badge badge-status" id="status-badge"><span class="dot"></span> System Active</span>
+                    <span class="badge" id="source-badge">Data: CSV</span>
+                    <span class="badge" id="twilio-badge">Voice: Mock</span>
+                </div>
+                <button class="btn-icon" id="btn-theme-toggle" title="Toggle Light/Dark Theme">
+                    <i class="fa-solid fa-sun" id="theme-icon"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Workspace -->
+        <main class="main-content">
+            <!-- Stats Metrics Banner -->
+            <section class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span class="stat-label">Total Scheduled</span>
+                        <i class="fa-solid fa-car-side stat-icon"></i>
+                    </div>
+                    <span class="stat-value" id="stat-total">0</span>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span class="stat-label">Pending Window</span>
+                        <i class="fa-solid fa-clock stat-icon"></i>
+                    </div>
+                    <span class="stat-value" id="stat-pending">0</span>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span class="stat-label">Reminders Dispatched</span>
+                        <i class="fa-solid fa-phone stat-icon"></i>
+                    </div>
+                    <span class="stat-value" id="stat-sent">0</span>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span class="stat-label">Unanswered Calls</span>
+                        <i class="fa-solid fa-phone-slash stat-icon"></i>
+                    </div>
+                    <span class="stat-value" id="stat-unanswered">0</span>
+                </div>
+            </section>
+
+            <!-- Automation Control Bar -->
+            <section class="control-panel">
+                <div class="panel-left">
+                    <h2>Scheduler Orchestration</h2>
+                    <p>Trigger 30-minute lead time scans or evaluate custom reference timestamps.</p>
+                </div>
+                <div class="panel-right">
+                    <div class="time-simulator">
+                        <label for="sim-time">Ref Time:</label>
+                        <input type="time" id="sim-time" value="09:15">
+                        <button class="btn btn-secondary btn-sm" id="btn-use-now">Current</button>
+                    </div>
+                    <button class="btn btn-primary" id="btn-run-scan">
+                        <i class="fa-solid fa-play"></i> Run 30-Min Scan
+                    </button>
+                    <button class="btn btn-secondary" id="btn-reset">
+                        <i class="fa-solid fa-rotate-left"></i> Reset State
+                    </button>
+                </div>
+            </section>
+
+            <!-- Content Grid: Rides Table + Live Call Feed & TTS Preview -->
+            <div class="content-grid">
+                <!-- Left Column: Rides Table -->
+                <div class="card card-wide">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <i class="fa-solid fa-table-list"></i>
+                            <h3>Scheduled Driver Rides</h3>
+                        </div>
+                        <div class="card-actions">
+                            <button class="btn btn-sm btn-secondary" id="btn-refresh"><i class="fa-solid fa-arrows-rotate"></i> Refresh</button>
+                            <button class="btn btn-sm btn-primary" id="btn-add-ride-modal"><i class="fa-solid fa-plus"></i> Add Ride</button>
+                        </div>
+                    </div>
+                    <div class="table-wrapper">
+                        <table class="rides-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Driver & Contact</th>
+                                    <th>Pickup Location</th>
+                                    <th>Scheduled</th>
+                                    <th>Lead Window</th>
+                                    <th>Status</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="rides-tbody">
+                                <tr>
+                                    <td colspan="7" class="loading-cell">
+                                        Loading records...
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Right Column: Voice Script & Call Log Feed -->
+                <div class="card card-narrow">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <i class="fa-solid fa-bullhorn"></i>
+                            <h3>TwiML Audio Preview</h3>
+                        </div>
+                    </div>
+                    <div class="voice-box">
+                        <p class="voice-script" id="voice-script-text">
+                            "Hello [Driver Name], this is an automated reminder from Cabie Fleet Management. You have a pickup scheduled at [Location] at [Time]. Please call/message your customer and head to the location on time."
+                        </p>
+                        <button class="btn btn-secondary btn-full" id="btn-listen-tts">
+                            <i class="fa-solid fa-volume-high"></i> Listen Audio Preview
+                        </button>
+                    </div>
+
+                    <div class="card-header margin-top-lg">
+                        <div class="card-title">
+                            <i class="fa-solid fa-list-check"></i>
+                            <h3>Execution & Webhook Telemetry</h3>
+                        </div>
+                    </div>
+                    <div class="log-container" id="log-container">
+                        <div class="log-entry log-info">
+                            <span class="log-time">09:15:00</span>
+                            <span class="log-msg">Agent process initialized. Polling engine ready.</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal for Scheduling New Test Ride -->
+    <div class="modal" id="add-ride-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Create Scheduled Ride Entry</h3>
+                <span class="close-modal" id="close-modal">&times;</span>
+            </div>
+            <form id="add-ride-form">
+                <div class="form-group">
+                    <label>Driver Full Name</label>
+                    <input type="text" id="input-driver-name" required placeholder="e.g. Alex Vance">
+                </div>
+                <div class="form-group">
+                    <label>Phone Number (E.164 Format)</label>
+                    <input type="text" id="input-driver-phone" required placeholder="e.g. +14155550199">
+                </div>
+                <div class="form-group">
+                    <label>Pickup Location Landmark</label>
+                    <input type="text" id="input-pickup-location" required placeholder="e.g. Terminal 4 North Exit">
+                </div>
+                <div class="form-group">
+                    <label>Scheduled Time (HH:MM)</label>
+                    <input type="time" id="input-pickup-time" required value="09:45">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" id="btn-cancel-modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Ride Entry</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>
