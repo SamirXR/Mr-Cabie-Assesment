@@ -1,0 +1,7 @@
+ride_id,driver_name,driver_phone,pickup_location,scheduled_pickup_time,status,call_sid,call_outcome,last_called_at,notes
+RIDE-101,Rajesh Kumar,+917290869843,IGI Airport Terminal 3 Exit 4,46253.427083333336,Reminder Sent,CAa2118fa6c234d43f9e9311be38cd7632,queued,2026-08-19 12:13:50,Manual call triggered at 12:13
+RIDE-102,Vikram Singh,+919812345678,Cyber Hub Building 10 Gurgaon,46253.427083333336,Pending,,,,
+RIDE-103,Amit Sharma,+919988776655,Connaught Place Block C New Delhi,46253.416666666664,Pending,,,,
+RIDE-104,Pooja Verma,+919711223344,New Delhi Railway Station Gate 2,46253.447916666664,Pending,,,,
+RIDE-105,Suresh Yadav,+919899001122,Select Citywalk Saket Delhi,46253.427083333336,Pending,,,,Already called
+RIDE-106,Gurpreet Singh,+919866554433,Noida Sector 62 Metro Station,46253.427083333336,Pending,,,,

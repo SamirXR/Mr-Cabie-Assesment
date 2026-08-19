@@ -442,9 +442,10 @@ class GoogleSheetAdapter(BaseSheetAdapter):
 class LocalExcelSheetAdapter(BaseSheetAdapter):
     """Adapter reading directly from downloaded Google Sheet XLSX files."""
 
-    def __init__(self, excel_filepath: str, csv_fallback_path: str):
+    def __init__(self, excel_filepath: str, csv_fallback_path: Optional[str] = None):
         self.excel_filepath = excel_filepath
-        self.csv_adapter = CSVSheetAdapter(csv_fallback_path)
+        fallback = csv_fallback_path or os.path.join(os.path.dirname(excel_filepath), ".temp_rides_cache.csv")
+        self.csv_adapter = CSVSheetAdapter(fallback)
         self._lock = threading.RLock()
         self._sync_excel_to_csv()
 
@@ -557,25 +558,21 @@ class LocalExcelSheetAdapter(BaseSheetAdapter):
 def get_sheet_adapter(config) -> BaseSheetAdapter:
     """Factory to instantiate configured sheet adapter."""
     from config import BASE_DIR
-    excel_path = os.path.join(BASE_DIR, "google_sheet.xlsx")
+    excel_path = getattr(config, "EXCEL_FILE_PATH", os.path.join(BASE_DIR, "google_sheet.xlsx"))
     if os.path.exists(excel_path):
         logger.info(f"Detected Google Sheet excel file at {excel_path}. Loading LocalExcelSheetAdapter.")
-        return LocalExcelSheetAdapter(excel_path, config.CSV_FILE_PATH)
+        return LocalExcelSheetAdapter(excel_path)
 
     source_type = config.DATA_SOURCE.lower()
-    if source_type == "google_sheet":
-        if not config.GOOGLE_SHEET_ID or not os.path.exists(config.GOOGLE_SERVICE_ACCOUNT_FILE):
-            logger.warning("Google Sheet ID or credentials missing. Falling back to CSV adapter.")
-            return CSVSheetAdapter(config.CSV_FILE_PATH)
+    if source_type == "google_sheet" and config.GOOGLE_SHEET_ID and os.path.exists(config.GOOGLE_SERVICE_ACCOUNT_FILE):
         return GoogleSheetAdapter(
             sheet_id=config.GOOGLE_SHEET_ID,
             service_account_file=config.GOOGLE_SERVICE_ACCOUNT_FILE,
             sheet_name=config.GOOGLE_SHEET_NAME,
         )
-    elif source_type in ["csv", "xlsx", "excel"]:
-        return CSVSheetAdapter(config.CSV_FILE_PATH)
     elif source_type == "mock":
         return MockSheetAdapter()
     else:
+        return LocalExcelSheetAdapter(excel_path)
         raise ValueError(f"Unknown data source type: {config.DATA_SOURCE}")
 

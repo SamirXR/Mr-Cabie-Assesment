@@ -4,13 +4,12 @@ from typing import Optional
 
 BASE_DIR = Path(__file__).resolve().parent
 
-# Try importing pydantic_settings or pydantic, fallback to standard dataclass if missing
 try:
     from pydantic_settings import BaseSettings, SettingsConfigDict
     
     class Settings(BaseSettings):
-        DATA_SOURCE: str = "csv"
-        CSV_FILE_PATH: str = str(BASE_DIR / "sample_rides.csv")
+        DATA_SOURCE: str = "google_sheet"
+        EXCEL_FILE_PATH: str = str(BASE_DIR / "google_sheet.xlsx")
         GOOGLE_SHEET_ID: Optional[str] = None
         GOOGLE_SHEET_NAME: str = "Rides"
         GOOGLE_SERVICE_ACCOUNT_FILE: Optional[str] = str(BASE_DIR / "service_account.json")
@@ -24,17 +23,16 @@ try:
         REMINDER_LEAD_MINUTES: int = 30
         REMINDER_WINDOW_TOLERANCE_MINUTES: int = 5
         POLL_INTERVAL_SECONDS: int = 60
-        TIMEZONE: str = "UTC"
+        TIMEZONE: str = "Asia/Kolkata"
 
         model_config = SettingsConfigDict(env_file=str(BASE_DIR / ".env"), env_file_encoding="utf-8", extra="ignore")
 
 except Exception:
-    # Fallback to lightweight pure Pydantic v1 / v2 or dataclasses
     try:
         from pydantic import BaseModel
         class Settings(BaseModel):
-            DATA_SOURCE: str = os.getenv("DATA_SOURCE", "csv")
-            CSV_FILE_PATH: str = os.getenv("CSV_FILE_PATH", str(BASE_DIR / "sample_rides.csv"))
+            DATA_SOURCE: str = os.getenv("DATA_SOURCE", "google_sheet")
+            EXCEL_FILE_PATH: str = os.getenv("EXCEL_FILE_PATH", str(BASE_DIR / "google_sheet.xlsx"))
             GOOGLE_SHEET_ID: Optional[str] = os.getenv("GOOGLE_SHEET_ID")
             GOOGLE_SHEET_NAME: str = os.getenv("GOOGLE_SHEET_NAME", "Rides")
             GOOGLE_SERVICE_ACCOUNT_FILE: Optional[str] = os.getenv("GOOGLE_SERVICE_ACCOUNT_FILE", str(BASE_DIR / "service_account.json"))
@@ -48,13 +46,13 @@ except Exception:
             REMINDER_LEAD_MINUTES: int = int(os.getenv("REMINDER_LEAD_MINUTES", "30"))
             REMINDER_WINDOW_TOLERANCE_MINUTES: int = int(os.getenv("REMINDER_WINDOW_TOLERANCE_MINUTES", "5"))
             POLL_INTERVAL_SECONDS: int = int(os.getenv("POLL_INTERVAL_SECONDS", "60"))
-            TIMEZONE: str = os.getenv("TIMEZONE", "UTC")
+            TIMEZONE: str = os.getenv("TIMEZONE", "Asia/Kolkata")
     except Exception:
         from dataclasses import dataclass
         @dataclass
         class Settings:
-            DATA_SOURCE: str = os.getenv("DATA_SOURCE", "csv")
-            CSV_FILE_PATH: str = os.getenv("CSV_FILE_PATH", str(BASE_DIR / "sample_rides.csv"))
+            DATA_SOURCE: str = os.getenv("DATA_SOURCE", "google_sheet")
+            EXCEL_FILE_PATH: str = os.getenv("EXCEL_FILE_PATH", str(BASE_DIR / "google_sheet.xlsx"))
             GOOGLE_SHEET_ID: Optional[str] = os.getenv("GOOGLE_SHEET_ID")
             GOOGLE_SHEET_NAME: str = os.getenv("GOOGLE_SHEET_NAME", "Rides")
             GOOGLE_SERVICE_ACCOUNT_FILE: Optional[str] = os.getenv("GOOGLE_SERVICE_ACCOUNT_FILE", str(BASE_DIR / "service_account.json"))
@@ -68,10 +66,9 @@ except Exception:
             REMINDER_LEAD_MINUTES: int = int(os.getenv("REMINDER_LEAD_MINUTES", "30"))
             REMINDER_WINDOW_TOLERANCE_MINUTES: int = int(os.getenv("REMINDER_WINDOW_TOLERANCE_MINUTES", "5"))
             POLL_INTERVAL_SECONDS: int = int(os.getenv("POLL_INTERVAL_SECONDS", "60"))
-            TIMEZONE: str = os.getenv("TIMEZONE", "UTC")
+            TIMEZONE: str = os.getenv("TIMEZONE", "Asia/Kolkata")
 
 
-# Load .env into os.environ if python-dotenv is present
 try:
     from dotenv import load_dotenv
     load_dotenv(BASE_DIR / ".env")
@@ -79,4 +76,3 @@ except ImportError:
     pass
 
 settings = Settings()
-
